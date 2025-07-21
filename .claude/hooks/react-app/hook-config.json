@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "name": "React App Quality Check Hook",
+  "description": "Quality checks optimized for React applications",
+  "projectType": "react-app",
+  "typescript": {
+    "enabled": true,
+    "showDependencyErrors": false,
+    "jsx": "react"
+  },
+  "eslint": {
+    "enabled": true,
+    "autofix": true,
+    "extends": ["react-app", "react-app/jest"]
+  },
+  "prettier": {
+    "enabled": true,
+    "autofix": true
+  },
+  "general": {
+    "autofixSilent": true,
+    "debug": false
+  },
+  "rules": {
+    "console": {
+      "enabled": true,
+      "severity": "info",
+      "message": "Consider using a logging library for production",
+      "allowIn": {
+        "paths": ["src/", "components/", "pages/", "app/"],
+        "fileTypes": ["component", "hook", "page", "test", "spec"],
+        "patterns": ["*.jsx", "*.tsx", "*.test.*", "*.spec.*"]
+      }
+    },
+    "asAny": {
+      "enabled": true,
+      "severity": "warning",
+      "message": "Prefer proper types or 'as unknown' for type assertions"
+    },
+    "debugger": {
+      "enabled": true,
+      "severity": "error",
+      "message": "Remove debugger statements before committing"
+    },
+    "todos": {
+      "enabled": true,
+      "severity": "info",
+      "patterns": ["TODO", "FIXME", "HACK"]
+    }
+  },
+  "fileTypes": {
+    "component": {
+      "patterns": ["*.jsx", "*.tsx"],
+      "paths": ["components/", "src/components/", "app/components/"]
+    },
+    "hook": {
+      "patterns": ["use*.js", "use*.ts", "use*.jsx", "use*.tsx"],
+      "paths": ["hooks/", "src/hooks/"]
+    },
+    "page": {
+      "patterns": ["*.jsx", "*.tsx"],
+      "paths": ["pages/", "src/pages/", "app/"]
+    }
+  },
+  "ignore": {
+    "paths": [
+      "node_modules/",
+      "build/",
+      "dist/",
+      ".next/",
+      "coverage/",
+      "public/",
+      "*.config.js",
+      "*.config.ts"
+    ]
+  }
+}

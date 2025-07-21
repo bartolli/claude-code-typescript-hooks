@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "name": "VS Code Extension Quality Check",
+  "description": "Strict quality checks for VS Code extensions",
+  "projectType": "vscode-extension",
+  "typescript": {
+    "enabled": true,
+    "showDependencyErrors": false
+  },
+  "eslint": {
+    "enabled": true,
+    "autofix": true
+  },
+  "prettier": {
+    "enabled": true,
+    "autofix": true
+  },
+  "general": {
+    "autofixSilent": true,
+    "debug": false
+  },
+  "ignore": {
+    "patterns": [
+      "*.config.js",
+      "*.config.ts",
+      "dist/*",
+      "out/*",
+      "build/*",
+      "node_modules/*"
+    ]
+  }
+}
