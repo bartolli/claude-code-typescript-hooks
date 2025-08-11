@@ -5,9 +5,9 @@
 ![Node.js](https://img.shields.io/badge/Node.js-Runtime-339933?logo=node.js&logoColor=white)
 ![Hooks](https://img.shields.io/badge/Hooks-PostToolUse-FF6B6B?logo=git&logoColor=white)
 
-Fast, intelligent quality checks for different project types.
+Quality checks for different project types.
 
-> **📚 Official Documentation**: [Claude Code Hooks Guide](https://docs.anthropic.com/en/docs/claude-code/hooks)
+[Official Documentation](https://docs.anthropic.com/en/docs/claude-code/hooks)
 
 ## Quick Start
 
@@ -19,6 +19,9 @@ Fast, intelligent quality checks for different project types.
 
 # VS Code extensions
 .claude/hooks/vscode-extension/
+
+# Node.js TypeScript projects
+.claude/hooks/node-typescript/
 
 # More coming soon...
 ```
@@ -45,32 +48,38 @@ Add to `.claude/settings.local.json`:
 }
 ```
 
-### 3. Done!
+### 3. Done
 
-The hook runs automatically when you edit files.
+Hook runs automatically when you edit files.
 
-## Why Claude Code Agents Love This
+## Features
 
-- 🚀 **Catches errors before runtime** - No more "undefined is not a function" surprises
-- 🎯 **Uses the RIGHT config** - Browser code checked with browser rules (no more false "window not defined")
-- ⚡ **Auto-fixes trivial issues** - Agent focuses on logic, not semicolons
-- 🧠 **Project-aware intelligence** - React hooks allow console.log, VS Code extensions don't
-- 💡 **Instant feedback loop** - Agent knows immediately what needs fixing
-- 🛡️ **Prevents regressions** - Can't accidentally break working code
+- Catches errors before runtime
+- Uses project-specific TypeScript configurations
+- Auto-fixes trivial issues
+- Project-aware rules (React hooks allow console.log, VS Code extensions don't)
+- Immediate feedback during editing
+- Prevents regressions
 
 ## Project Types
 
-### ⚛️ React App
+### React App
 
 - Console allowed in components
 - 'as any' warnings (not errors)
 - JSX support
 
-### 🔌 VS Code Extension
+### VS Code Extension
 
 - Console blocked in extension code
 - Console allowed in webview
 - Strict TypeScript
+
+### Node.js TypeScript
+
+- Console allowed (acceptable for CLI tools)
+- 'as any' warnings (not errors)
+- Optimized for server/client transport code
 
 ## Configuration
 
@@ -78,21 +87,52 @@ Each hook has `hook-config.json`:
 
 ```json
 {
+  "typescript": {
+    "enabled": true,
+    "showDependencyErrors": false,
+    "jsx": "react" // For React hooks
+  },
+  "eslint": {
+    "enabled": true,
+    "autofix": true
+  },
+  "prettier": {
+    "enabled": true,
+    "autofix": true
+  },
   "rules": {
     "console": {
-      "severity": "info", // or "warning", "error"
+      "severity": "info|warning|error",
       "allowIn": {
-        "paths": ["src/components/"]
+        "paths": ["src/components/"],
+        "fileTypes": ["component", "test"]
       }
     }
   }
 }
 ```
 
+### Environment Variable Overrides
+
+```bash
+# Disable specific checks
+export CLAUDE_HOOKS_PRETTIER_ENABLED=false
+
+# Enable debug mode
+export CLAUDE_HOOKS_DEBUG=true
+
+# Show dependency errors (not recommended)
+export CLAUDE_HOOKS_SHOW_DEPENDENCY_ERRORS=true
+```
+
 ## Testing
 
 ```bash
 # Test manually
+echo '{"tool_name":"Edit","tool_input":{"file_path":"src/App.tsx"}}' | node .claude/hooks/react-app/quality-check.js
+
+# Run with debug output
+export CLAUDE_HOOKS_DEBUG=true
 echo '{"tool_name":"Edit","tool_input":{"file_path":"src/App.tsx"}}' | node .claude/hooks/react-app/quality-check.js
 ```
 
@@ -101,14 +141,29 @@ echo '{"tool_name":"Edit","tool_input":{"file_path":"src/App.tsx"}}' | node .cla
 1. Copy existing hook folder
 2. Edit `hook-config.json`
 3. Customize rules as needed
-4. Share with community!
 
 ## Exit Codes
 
-- `0` - All good ✅
-- `2` - Fix required ❌
+- **Exit 0**: All checks passed
+  - File quality verified
+  - Auto-fixes applied if enabled
+  - Hook output suppressed by Claude Code
 
-## How It Works
+- **Exit 2**: Issues found
+  - TypeScript compilation errors
+  - ESLint errors that couldn't be auto-fixed
+  - Prettier issues (if auto-fix disabled)
+  - Full error report shown to agent
+
+When running via Claude Code hooks:
+- **Exit 0**: Silent success (no output shown)
+- **Exit 2**: Full error report shown to user
+
+When testing manually:
+- All `[INFO]`, `[OK]`, `[WARN]` messages visible
+- Useful for debugging hook behavior
+
+## Under the Hook
 
 ### Hook Flow
 
@@ -138,7 +193,7 @@ graph TD
 
 ### Smart TypeScript Config Cache
 
-The hook uses an intelligent caching system to handle complex TypeScript configurations:
+The hook uses a caching system to handle complex TypeScript configurations:
 
 **1. Config Discovery**
 
@@ -199,27 +254,19 @@ graph LR
     H --> I
 ```
 
-**5. Why SHA256?**
-
-- **Cryptographically secure** - Guarantees unique fingerprint
-- **Fast computation** - Native Node.js crypto module
-- **Collision resistant** - No two different configs will have same hash
-- **Deterministic** - Same content always produces same hash
-
-**6. Performance Impact**
+**5. Performance & Benefits**
 
 - First run: ~100-200ms to build cache
-- Subsequent runs: <5ms to verify hashes
+- Subsequent runs: <5ms to verify hashes using SHA256
 - Config change: Only rebuilds affected mappings
 - Result: 95%+ faster on repeated runs
+- SHA256 ensures cache validity (cryptographically secure, collision resistant)
+- Each hook maintains its own cache
+- Skip expensive file system operations
 
-**7. Cache Benefits**
+**Why manual hashing vs TypeScript project references?**
 
-- ⚡ **Lightning fast** - Skip expensive file system operations
-- 🎯 **100% accurate** - SHA256 ensures cache validity
-- 🔄 **Auto-updates** - Detects any config change instantly
-- 🗂️ **Isolated** - Each hook maintains its own cache
-- 🧠 **Smart rebuilds** - Only reprocesses changed configs
+Manual SHA256 hashing provides <5ms cache lookups compared to 100-500ms for `tsc` incremental checks. The cache maintains reference maps to actual config paths while delivering superior performance for real-time editing scenarios.
 
 ### Check Execution
 
@@ -247,79 +294,6 @@ graph LR
 - `as any` usage (error vs warning)
 - TODO/FIXME comments (informational)
 
-### Output Channels
-
-When running via Claude Code hooks:
-
-- **Exit 0**: Silent success (no output shown)
-- **Exit 2**: Full error report shown to user
-
-When testing manually:
-
-- All `[INFO]`, `[OK]`, `[WARN]` messages visible
-- Useful for debugging hook behavior
-
-## Configuration
-
-### Hook Settings
-
-Each hook folder has a `hook-config.json` that controls behavior:
-
-```json
-{
-  "typescript": {
-    "enabled": true,
-    "showDependencyErrors": false,
-    "jsx": "react" // For React hooks
-  },
-  "eslint": {
-    "enabled": true,
-    "autofix": true
-  },
-  "prettier": {
-    "enabled": true,
-    "autofix": true
-  },
-  "rules": {
-    "console": {
-      "severity": "info|warning|error",
-      "allowIn": {
-        "paths": ["src/components/"],
-        "fileTypes": ["component", "test"]
-      }
-    }
-  }
-}
-```
-
-### Environment Variable Overrides
-
-You can override any setting with environment variables:
-
-```bash
-# Disable specific checks
-export CLAUDE_HOOKS_PRETTIER_ENABLED=false
-
-# Enable debug mode
-export CLAUDE_HOOKS_DEBUG=true
-
-# Show dependency errors (not recommended)
-export CLAUDE_HOOKS_SHOW_DEPENDENCY_ERRORS=true
-```
-
-### Understanding Exit Codes
-
-- **Exit 0**: All checks passed ✅
-  - File quality verified
-  - Auto-fixes applied if enabled
-  - Hook output suppressed by Claude Code
-
-- **Exit 2**: Issues found ❌
-  - TypeScript compilation errors
-  - ESLint errors that couldn't be auto-fixed
-  - Prettier issues (if auto-fix disabled)
-  - Full error report shown to agent
-
 ### Troubleshooting
 
 **Cache issues?**
@@ -329,13 +303,6 @@ export CLAUDE_HOOKS_SHOW_DEPENDENCY_ERRORS=true
 rm .claude/hooks/react-app/tsconfig-cache.json
 ```
 
-**Want more details?**
-
-```bash
-# Run manually with debug output
-export CLAUDE_HOOKS_DEBUG=true
-echo '{"tool_name":"Edit","tool_input":{"file_path":"src/App.tsx"}}' | node .claude/hooks/react-app/quality-check.js
-```
 
 **Hook not running?**
 
@@ -344,6 +311,6 @@ echo '{"tool_name":"Edit","tool_input":{"file_path":"src/App.tsx"}}' | node .cla
 chmod +x .claude/hooks/*/quality-check.js
 ```
 
-## Questions?
+## Questions
 
 Check individual hook folders for more details.
