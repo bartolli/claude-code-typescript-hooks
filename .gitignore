@@ -6,6 +6,7 @@ yarn-error.log*
 
 # Cache files
 .claude/hooks/*/tsconfig-cache.json
+*-cache.json
 *.cache
 
 # Logs
@@ -46,3 +47,7 @@ out/
 # Claude Code specific
 .claude/settings.local.json.bak
 .claude/settings.local.json.orig
+
+# codanna
+.codanna/
+.fastembed_cache/

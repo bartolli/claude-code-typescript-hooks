@@ -13,22 +13,14 @@ const path = require('path');
 const crypto = require('crypto');
 
 /**
- * Find project root by looking for package.json
- * @param {string} startPath - Starting directory path
+ * Get project root using CLAUDE_PROJECT_DIR environment variable
  * @returns {string} Project root directory
  */
-function findProjectRoot(startPath) {
-  let currentPath = startPath;
-  while (currentPath !== '/') {
-    if (require('fs').existsSync(path.join(currentPath, 'package.json'))) {
-      return currentPath;
-    }
-    currentPath = path.dirname(currentPath);
-  }
-  return process.cwd();
+function getProjectRoot() {
+  return process.env.CLAUDE_PROJECT_DIR || process.cwd();
 }
 
-const projectRoot = findProjectRoot(__dirname);
+const projectRoot = getProjectRoot();
 
 /**
  * Intelligent TypeScript Config Cache with checksum validation
