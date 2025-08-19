@@ -28,7 +28,7 @@ Quality checks for different project types.
 
 ### 2. Configure Claude Code
 
-Add to `.claude/settings.local.json`:
+Add to `.claude/settings.local.json` and customize "command" quality-check.js path according to your project type (react-app, vscode-extension, node-typescript):
 
 ```json
 {
