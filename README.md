@@ -39,7 +39,7 @@ Add to `.claude/settings.local.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/react-app/quality-check.js"
+            "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/react-app/quality-check.js"
           }
         ]
       }
